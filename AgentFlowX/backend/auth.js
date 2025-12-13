@@ -1,33 +1,47 @@
-// backend/auth.js
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { query } = require("./db");
 
 const JWT_SECRET = process.env.JWT_SECRET || "please_change_this_in_production";
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d"; // token validity
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
 
+/* ============================
+   REGISTER
+============================ */
 async function register(req, res) {
   try {
     const { name, email, password } = req.body;
-    if (!email || !password) return res.status(400).json({ ok: false, error: "email+password required" });
+
+    if (!name || !email || !password) {
+      return res.status(400).json({ ok: false, error: "name_email_password_required" });
+    }
 
     const emailLower = email.trim().toLowerCase();
 
-    // check existing
-    const existing = await query("SELECT id FROM users WHERE email_normalized=$1", [emailLower]);
-    if (existing.rows.length) return res.status(409).json({ ok: false, error: "user_exists" });
+    const existing = await query(
+      "SELECT id FROM users WHERE email_normalized=$1",
+      [emailLower]
+    );
+    if (existing.rows.length) {
+      return res.status(409).json({ ok: false, error: "user_exists" });
+    }
 
-    const saltRounds = 10;
-    const password_hash = await bcrypt.hash(password, saltRounds);
+    const password_hash = await bcrypt.hash(password, 10);
 
     const result = await query(
       `INSERT INTO users (name, email, email_normalized, password_hash)
-       VALUES ($1,$2,$3,$4) RETURNING id,name,email,preferred_reminder_delay,preferred_email_tone,preferred_invoice_format`,
-      [name || null, email, emailLower, password_hash]
+       VALUES ($1,$2,$3,$4)
+       RETURNING id,name,email,preferred_reminder_delay,preferred_email_tone,preferred_invoice_format`,
+      [name, email, emailLower, password_hash]
     );
 
     const user = result.rows[0];
-    const token = jwt.sign({ sub: user.id }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+
+    const token = jwt.sign(
+      { id: user.id },
+      JWT_SECRET,
+      { expiresIn: JWT_EXPIRES_IN }
+    );
 
     res.json({ ok: true, user, token });
   } catch (err) {
@@ -36,29 +50,47 @@ async function register(req, res) {
   }
 }
 
+/* ============================
+   LOGIN
+============================ */
 async function login(req, res) {
   try {
     const { email, password } = req.body;
-    if (!email || !password) return res.status(400).json({ ok: false, error: "email+password required" });
+
+    if (!email || !password) {
+      return res.status(400).json({ ok: false, error: "email_password_required" });
+    }
 
     const emailLower = email.trim().toLowerCase();
-    const result = await query("SELECT * FROM users WHERE email_normalized=$1", [emailLower]);
+
+    const result = await query(
+      "SELECT * FROM users WHERE email_normalized=$1",
+      [emailLower]
+    );
+
     const user = result.rows[0];
-    if (!user) return res.status(401).json({ ok: false, error: "invalid_credentials" });
+    if (!user) {
+      return res.status(401).json({ ok: false, error: "invalid_credentials" });
+    }
 
     const match = await bcrypt.compare(password, user.password_hash || "");
-    if (!match) return res.status(401).json({ ok: false, error: "invalid_credentials" });
+    if (!match) {
+      return res.status(401).json({ ok: false, error: "invalid_credentials" });
+    }
 
-    const token = jwt.sign({ sub: user.id }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+    const token = jwt.sign(
+      { id: user.id },
+      JWT_SECRET,
+      { expiresIn: JWT_EXPIRES_IN }
+    );
 
-    // return user meta without password_hash
     const safeUser = {
       id: user.id,
       name: user.name,
       email: user.email,
       preferred_reminder_delay: user.preferred_reminder_delay,
       preferred_email_tone: user.preferred_email_tone,
-      preferred_invoice_format: user.preferred_invoice_format
+      preferred_invoice_format: user.preferred_invoice_format,
     };
 
     res.json({ ok: true, user: safeUser, token });
@@ -68,15 +100,21 @@ async function login(req, res) {
   }
 }
 
-// middleware to protect routes
+/* ============================
+   AUTH MIDDLEWARE
+============================ */
 function verifyToken(req, res, next) {
-  const header = req.headers.authorization || req.headers.Authorization;
-  if (!header || !header.startsWith("Bearer ")) return res.status(401).json({ ok: false, error: "no_token" });
+  const header = req.headers.authorization;
+
+  if (!header || !header.startsWith("Bearer ")) {
+    return res.status(401).json({ ok: false, error: "no_token" });
+  }
+
   const token = header.split(" ")[1];
 
   try {
     const payload = jwt.verify(token, JWT_SECRET);
-    req.user = { id: payload.sub };
+    req.user = { id: payload.id };
     next();
   } catch (err) {
     return res.status(401).json({ ok: false, error: "invalid_token" });
