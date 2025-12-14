@@ -1,6 +1,0 @@
-{
-  "dependencies": {
-    "@google/generative-ai": "^0.24.1",
-    "pg": "^8.16.3"
-  }
-}
