@@ -1,6 +1,13 @@
 // backend/db.js
 const { Pool } = require('pg');
 require('dotenv').config();
+console.log("DB CONFIG:", {
+  PG_USER: process.env.PG_USER,
+  PG_DB: process.env.PG_DB,
+  PG_HOST: process.env.PG_HOST,
+  PG_PORT: process.env.PG_PORT,
+});
+
 
 const pool = new Pool({
   user: process.env.PG_USER || 'postgres',

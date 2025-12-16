@@ -10,28 +10,41 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
 ============================ */
 async function register(req, res) {
   try {
+    
+    console.log("REGISTER BODY:", req.body);
+
     const { name, email, password } = req.body;
 
     if (!name || !email || !password) {
-      return res.status(400).json({ ok: false, error: "name_email_password_required" });
+      return res.status(400).json({
+        ok: false,
+        error: "name_email_password_required",
+      });
     }
 
     const emailLower = email.trim().toLowerCase();
 
     const existing = await query(
-      "SELECT id FROM users WHERE email_normalized=$1",
+      "SELECT id FROM users WHERE email_normalized = $1",
       [emailLower]
     );
+
     if (existing.rows.length) {
-      return res.status(409).json({ ok: false, error: "user_exists" });
+      return res.status(409).json({
+        ok: false,
+        error: "user_exists",
+      });
     }
 
     const password_hash = await bcrypt.hash(password, 10);
 
     const result = await query(
       `INSERT INTO users (name, email, email_normalized, password_hash)
-       VALUES ($1,$2,$3,$4)
-       RETURNING id,name,email,preferred_reminder_delay,preferred_email_tone,preferred_invoice_format`,
+       VALUES ($1, $2, $3, $4)
+       RETURNING id, name, email,
+                 preferred_reminder_delay,
+                 preferred_email_tone,
+                 preferred_invoice_format`,
       [name, email, emailLower, password_hash]
     );
 
@@ -49,6 +62,7 @@ async function register(req, res) {
     res.status(500).json({ ok: false, error: "server_error" });
   }
 }
+
 
 /* ============================
    LOGIN
