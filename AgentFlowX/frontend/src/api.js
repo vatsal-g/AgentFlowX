@@ -14,3 +14,9 @@ export function setAuthToken(token) {
     delete api.defaults.headers.common["Authorization"];
   }
 }
+
+// 🔥 IMPORTANT: attach token on first load
+const token = localStorage.getItem("afx_token");
+if (token) {
+  setAuthToken(token);
+}

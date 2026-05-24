@@ -1,23 +1,28 @@
-import React from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { setAuthToken } from '../api'
+import { Link, useNavigate } from "react-router-dom"
+import { setAuthToken } from "../api"
+import AgentFlowXLogo from "../assets/Agentflowxlogo"
 
-export default function Header(){
+export default function Header() {
   const nav = useNavigate()
 
   const logout = () => {
-    localStorage.removeItem('afx_token')
+    localStorage.removeItem("afx_token")
     setAuthToken(null)
-    nav('/login')
+    nav("/login")
   }
 
-  const token = localStorage.getItem('afx_token')
+  const token = localStorage.getItem("afx_token")
 
   return (
-    <header className="bg-slate-800 p-4 flex items-center justify-between">
-      <div className="text-xl font-semibold">AgentFlowX</div>
-      <nav className="space-x-4">
-        {token ? (
+    <header className="bg-slate-800 px-6 py-3 flex items-center justify-between">
+      
+      {/* ✅ LOGO ONLY */}
+      <div className="flex items-center gap-3">
+        <AgentFlowXLogo size={32} />
+      </div>
+
+      <nav className="space-x-5 text-sm">
+        {token && (
           <>
             <Link to="/dashboard">Dashboard</Link>
             <Link to="/clients">Clients</Link>
@@ -25,12 +30,12 @@ export default function Header(){
             <Link to="/agent">Agent</Link>
             <Link to="/audit">Audit</Link>
             <Link to="/preferences">Preferences</Link>
-            <button onClick={logout}>Logout</button>
-          </>
-        ) : (
-          <>
-            <Link to="/login">Login</Link>
-            <Link to="/register">Register</Link>
+            <button
+              onClick={logout}
+              className="ml-4 text-red-400 hover:text-red-300"
+            >
+              Logout
+            </button>
           </>
         )}
       </nav>

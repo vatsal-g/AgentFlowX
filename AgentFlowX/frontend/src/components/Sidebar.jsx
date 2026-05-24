@@ -7,6 +7,7 @@ const links = [
   { to: "/agent", label: "AI Agent" },
   { to: "/audit", label: "Audit Log" },
   { to: "/preferences", label: "Preferences" },
+  { to: "/anomalies", label: "Anomalies" },
 ]
 
 export default function Sidebar() {

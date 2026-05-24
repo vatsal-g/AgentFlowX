@@ -7,15 +7,17 @@ export default function Clients() {
   const [email, setEmail] = useState("")
   const [error, setError] = useState("")
 
-  function loadClients() {
-    api.get("/clients")
-      .then(res => setClients(res.data))
-      .catch(err => {
-        console.error(err)
-        setError("Failed to load clients")
-      })
-  }
-
+function loadClients() {
+  api.get("/clients")
+    .then(res => {
+      console.log("CLIENT RESPONSE:", res.data)
+      setClients(res.data.data || [])
+    })
+    .catch(err => {
+      console.error(err)
+      setError("Failed to load clients")
+    })
+}
   useEffect(() => {
     loadClients()
   }, [])

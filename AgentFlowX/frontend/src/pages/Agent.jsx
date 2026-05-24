@@ -1,48 +1,261 @@
-import { useState } from "react";
-import { api } from "../api";
-import { startVoiceInput } from "../utils/voice";
+import { useState } from "react"
+import axios from "axios"
+
+const API_BASE = "http://127.0.0.1:3001"
+
+async function sendCommand(command) {
+  const res = await axios.post(
+    `${API_BASE}/api/agent`,
+    {
+      userId: 1,
+      command
+    }
+  )
+
+  return res.data
+}
 
 export default function Agent() {
-  const [input, setInput] = useState("");
-  const [response, setResponse] = useState("");
 
-  async function sendCommand(cmd) {
-    const res = await api.post("/agent", { command: cmd });
-    setResponse(JSON.stringify(res.data, null, 2));
+  const [command, setCommand] =
+    useState("")
+
+  const [messages, setMessages] =
+    useState([])
+
+  const [loading, setLoading] =
+    useState(false)
+
+  async function handleSend() {
+
+    if (!command.trim())
+      return
+
+    const text = command
+
+    setMessages(prev => [
+      ...prev,
+      {
+        role: "user",
+        text
+      }
+    ])
+
+    setCommand("")
+
+    try {
+
+      setLoading(true)
+
+      const result =
+        await sendCommand(text)
+
+      setMessages(prev => [
+        ...prev,
+        {
+          role: "agent",
+          text:
+            result.message ||
+            JSON.stringify(
+              result,
+              null,
+              2
+            )
+        }
+      ])
+
+    } catch {
+
+      setMessages(prev => [
+        ...prev,
+        {
+          role: "agent",
+          text:
+            "Something went wrong"
+        }
+      ])
+
+    } finally {
+
+      setLoading(false)
+    }
+  }
+
+  function handleKey(e) {
+
+    if (
+      e.key === "Enter"
+      &&
+      !e.shiftKey
+    ) {
+
+      e.preventDefault()
+
+      handleSend()
+    }
   }
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-xl font-bold">AI Agent</h1>
 
-      <textarea
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        className="w-full p-2 text-black"
-      />
+    <div
+className="
+h-full
+w-full
+bg-[#050816]
+text-white
+flex
+flex-col
+overflow-hidden
+rounded-2xl
+">
 
-      <div className="flex gap-2">
-        <button
-          onClick={() => sendCommand(input)}
-          className="bg-indigo-600 px-4 py-2 rounded"
-        >
-          Send
-        </button>
+      <div
+        className="
+        flex-1
+        overflow-y-auto
+        p-8
+        space-y-4
+        "
+      >
 
-        <button
-          onClick={() =>
-            startVoiceInput((text) => {
-              setInput(text);
-              sendCommand(text);
-            })
-          }
-          className="bg-green-600 px-4 py-2 rounded"
-        >
-          🎤 Speak
-        </button>
+        {
+          messages.length === 0 && (
+
+            <div
+              className="
+              h-full
+              flex
+              items-center
+              justify-center
+              text-5xl
+              text-slate-300
+              "
+            >
+
+              Ask AgentFlowX
+
+            </div>
+
+          )
+        }
+
+        {
+          messages.map(
+            (
+              msg,
+              i
+            ) => (
+
+              <div
+                key={i}
+                className={`
+                  max-w-[70%]
+                  p-4
+                  rounded-3xl
+                  whitespace-pre-wrap
+
+                  ${
+                    msg.role ===
+                    "user"
+
+                    ?
+
+                    "ml-auto bg-indigo-600"
+
+                    :
+
+                    "bg-slate-900"
+                  }
+                `}
+              >
+
+                {
+                  msg.text
+                }
+
+              </div>
+
+            )
+          )
+        }
+
       </div>
 
-      <pre className="bg-slate-900 p-3">{response}</pre>
+      <div
+        className="
+        p-8
+        "
+      >
+
+        <div
+          className="
+          flex
+          items-center
+          bg-[#171717]
+          rounded-full
+          px-6
+          py-4
+          "
+        >
+
+          <input
+
+            value={command}
+
+            onChange={
+              (e)=>
+              setCommand(
+                e.target.value
+              )
+            }
+
+            onKeyDown={
+              handleKey
+            }
+
+            placeholder="Ask AgentFlowX"
+
+            className="
+            flex-1
+            bg-transparent
+            outline-none
+            text-lg
+
+            placeholder:text-slate-500
+            "
+
+          />
+
+          <button
+
+            onClick={
+              handleSend
+            }
+
+            className="
+            ml-4
+            px-5
+            py-2
+            rounded-full
+            bg-indigo-600
+            hover:bg-indigo-500
+            "
+
+          >
+
+            {
+              loading
+                ? "..."
+                : "Send"
+            }
+
+          </button>
+
+        </div>
+
+      </div>
+
     </div>
-  );
+
+  )
 }

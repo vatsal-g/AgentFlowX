@@ -1,5 +1,4 @@
 import { Routes, Route, Navigate } from "react-router-dom"
-import { useEffect } from "react"
 
 import Login from "./pages/Login"
 import Register from "./pages/Register"
@@ -10,28 +9,22 @@ import Agent from "./pages/Agent"
 import Audit from "./pages/Audit"
 import Preferences from "./pages/Preferences"
 import AppLayout from "./layouts/AppLayout"
-import { setAuthToken } from "./api"
+import Anomalies from "./pages/Anomalies"
 
 function PrivateRoute({ children }) {
   const token = localStorage.getItem("afx_token")
   if (!token) return <Navigate to="/login" replace />
-  setAuthToken(token)
   return children
 }
 
 export default function App() {
-  useEffect(() => {
-    const token = localStorage.getItem("afx_token")
-    if (token) setAuthToken(token)
-  }, [])
-
   return (
     <Routes>
-      {/* ===== PUBLIC ROUTES ===== */}
+      {/* PUBLIC */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
 
-      {/* ===== PROTECTED ROUTES ===== */}
+      {/* PROTECTED */}
       <Route
         element={
           <PrivateRoute>
@@ -46,6 +39,7 @@ export default function App() {
         <Route path="/agent" element={<Agent />} />
         <Route path="/audit" element={<Audit />} />
         <Route path="/preferences" element={<Preferences />} />
+        <Route path="/anomalies" element={<Anomalies />} />
       </Route>
     </Routes>
   )

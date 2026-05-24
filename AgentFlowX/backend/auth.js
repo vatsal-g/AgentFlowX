@@ -10,7 +10,6 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
 ============================ */
 async function register(req, res) {
   try {
-    
     console.log("REGISTER BODY:", req.body);
 
     const { name, email, password } = req.body;
@@ -38,20 +37,26 @@ async function register(req, res) {
 
     const password_hash = await bcrypt.hash(password, 10);
 
+    // 🔹 Default role = client
+    const role = "client";
+
     const result = await query(
-      `INSERT INTO users (name, email, email_normalized, password_hash)
-       VALUES ($1, $2, $3, $4)
-       RETURNING id, name, email,
+      `INSERT INTO users (name, email, email_normalized, password_hash, role)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING id, name, email, role,
                  preferred_reminder_delay,
                  preferred_email_tone,
                  preferred_invoice_format`,
-      [name, email, emailLower, password_hash]
+      [name, email, emailLower, password_hash, role]
     );
 
     const user = result.rows[0];
 
     const token = jwt.sign(
-      { id: user.id },
+      {
+        id: user.id,
+        role: user.role,
+      },
       JWT_SECRET,
       { expiresIn: JWT_EXPIRES_IN }
     );
@@ -63,7 +68,6 @@ async function register(req, res) {
   }
 }
 
-
 /* ============================
    LOGIN
 ============================ */
@@ -72,7 +76,9 @@ async function login(req, res) {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ ok: false, error: "email_password_required" });
+      return res
+        .status(400)
+        .json({ ok: false, error: "email_password_required" });
     }
 
     const emailLower = email.trim().toLowerCase();
@@ -93,7 +99,10 @@ async function login(req, res) {
     }
 
     const token = jwt.sign(
-      { id: user.id },
+      {
+        id: user.id,
+        role: user.role,
+      },
       JWT_SECRET,
       { expiresIn: JWT_EXPIRES_IN }
     );
@@ -102,6 +111,7 @@ async function login(req, res) {
       id: user.id,
       name: user.name,
       email: user.email,
+      role: user.role,
       preferred_reminder_delay: user.preferred_reminder_delay,
       preferred_email_tone: user.preferred_email_tone,
       preferred_invoice_format: user.preferred_invoice_format,
@@ -128,7 +138,12 @@ function verifyToken(req, res, next) {
 
   try {
     const payload = jwt.verify(token, JWT_SECRET);
-    req.user = { id: payload.id };
+
+    req.user = {
+      id: payload.id,
+      role: payload.role,
+    };
+
     next();
   } catch (err) {
     return res.status(401).json({ ok: false, error: "invalid_token" });
