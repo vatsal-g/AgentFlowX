@@ -46,13 +46,11 @@ export default function Login() {
             onChange={e => setPassword(e.target.value)}
           />
 
-          <button
-            type="submit"
-            className="w-full bg-indigo-600 hover:bg-indigo-700 py-2 rounded"
-          >
-            Login
-          </button>
-
+          <button>Login</button>;
+          <p style={{ marginTop: "12px", textAlign: "center" }}>
+  Don't have an account?{" "}
+  <a href="/register">Sign Up</a>
+</p>
           {err && <p className="text-red-400 text-sm">{err}</p>}
         </form>
       </div>

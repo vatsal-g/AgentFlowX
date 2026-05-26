@@ -1,17 +1,12 @@
-console.log("server.js is running");
-
 require("dotenv").config();
-
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
-
 const dashboardRoutes = require("./dashboard.routes");
 const invoiceRoutes = require("./invoice.routes"); 
-
 const { runAgent } = require("./agent");
-
-const app = express(); // ← create app first
+const auth = require("./auth");
+    const app = express();
 
 /* =========================
    MIDDLEWARE
@@ -26,6 +21,10 @@ app.use(bodyParser.json());
 
 app.use("/api", dashboardRoutes);
 app.use("/api/invoices", invoiceRoutes);
+app.post("/api/auth/register", auth.register);
+app.post("/api/auth/login", auth.login);
+                                          
+
 
 app.use((req, res, next) => {
   console.log(`[${req.method}] ${req.url}`, req.body || {});
