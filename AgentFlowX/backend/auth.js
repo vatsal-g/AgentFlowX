@@ -51,7 +51,7 @@ async function register(req, res) {
     );
 
     const user = result.rows[0];
-
+console.log("DB USER:", user);
     const token = jwt.sign(
       {
         id: user.id,
@@ -94,6 +94,9 @@ async function login(req, res) {
     }
 
     const match = await bcrypt.compare(password, user.password_hash || "");
+    console.log("PASSWORD MATCH:", match);
+    console.log("USER FOUND:", user.email);
+console.log("PASSWORD MATCH:", match);
     if (!match) {
       return res.status(401).json({ ok: false, error: "invalid_credentials" });
     }
