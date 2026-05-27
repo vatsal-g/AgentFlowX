@@ -273,7 +273,7 @@ ${safeCommand}
 
     }
 
-    } catch (err) {
+  } catch (err) {
 
     console.error(
       "runAgent Error:",
@@ -288,11 +288,8 @@ ${safeCommand}
         "AgentFlowX encountered an error."
 
     }
-
   }
-
 }
-
-module.exports = {
+    module.exports = {
   runAgent
 }
