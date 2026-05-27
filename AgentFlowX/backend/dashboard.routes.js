@@ -38,6 +38,43 @@ router.get("/clients", async (req, res) => {
     res.status(500).json({ ok: false });
   }
 });
+/* =========================
+   ADD CLIENT
+========================= */
+router.post("/clients", async (req, res) => {
+  try {
+    const { name, email } = req.body;
+
+    if (!name || !email) {
+      return res.status(400).json({
+        ok: false,
+        error: "name_and_email_required"
+      });
+    }
+
+    const result = await query(
+      `
+      INSERT INTO clients (name, email)
+      VALUES ($1, $2)
+      RETURNING *
+      `,
+      [name, email]
+    );
+
+    res.status(201).json({
+      ok: true,
+      data: result.rows[0]
+    });
+
+  } catch (err) {
+    console.error("Create client error:", err);
+
+    res.status(500).json({
+      ok: false,
+      error: "failed_to_create_client"
+    });
+  }
+});
 
 /* =========================
    GET ANOMALIES

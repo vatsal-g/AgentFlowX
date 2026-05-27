@@ -1,7 +1,7 @@
 import { useState } from "react"
 import axios from "axios"
 
-const API_BASE = "http://127.0.0.1:3001"
+const API_BASE = "https://AgentFlowX-backend.onrender.com"
 
 async function sendCommand(command) {
   const res = await axios.post(
@@ -50,17 +50,35 @@ export default function Agent() {
       const result =
         await sendCommand(text)
 
+      const formatted =
+        (
+          typeof result.message === "string"
+            ? result.message
+            : JSON.stringify(
+                result.message || result,
+                null,
+                2
+              )
+        )
+          .replace(/```json/g, "")
+          .replace(/```/g, "")
+          .replace(/"/g, "")
+          .replace(/[{}\[\],]/g, "")
+          .replace(/action:/g, "\nAction:")
+          .replace(/data:/g, "")
+          .replace(/name:/g, "\nName:")
+          .replace(/email:/g, "\nEmail:")
+          .replace(/amount:/g, "\nAmount: ₹")
+          .replace(/clientId:/g, "")
+          .replace(/create_client/g, "Create Client")
+          .replace(/create_invoice/g, "Create Invoice")
+          .trim()
+
       setMessages(prev => [
         ...prev,
         {
           role: "agent",
-          text:
-            result.message ||
-            JSON.stringify(
-              result,
-              null,
-              2
-            )
+          text: formatted
         }
       ])
 
@@ -78,6 +96,7 @@ export default function Agent() {
     } finally {
 
       setLoading(false)
+
     }
   }
 
@@ -98,16 +117,17 @@ export default function Agent() {
   return (
 
     <div
-className="
-h-full
-w-full
-bg-[#050816]
-text-white
-flex
-flex-col
-overflow-hidden
-rounded-2xl
-">
+      className="
+      h-full
+      w-full
+      bg-[#050816]
+      text-white
+      flex
+      flex-col
+      overflow-hidden
+      rounded-2xl
+      "
+    >
 
       <div
         className="
@@ -220,7 +240,6 @@ rounded-2xl
             bg-transparent
             outline-none
             text-lg
-
             placeholder:text-slate-500
             "
 

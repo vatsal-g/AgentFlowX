@@ -27,10 +27,13 @@ function loadClients() {
     setError("")
 
     try {
-      await api.post("/clients", { name, email })
+      await api.post("/clients", {
+  name: name.trim(),
+  email: email.trim()
+})
       setName("")
       setEmail("")
-      loadClients() // 🔥 THIS WAS MISSING
+      loadClients() 
     } catch (err) {
       console.error(err)
       setError("Failed to add client")

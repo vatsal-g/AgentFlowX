@@ -81,15 +81,14 @@ const ACTION_MAP = {
    SYSTEM PROMPT
 ========================= */
 
-const systemPrompt = `
+const systemPrompt =  `
 
 You are AgentFlowX.
 
-You help users manage business tasks.
+You manage business actions.
 
 Rules:
 
-1.
 If user wants to:
 
 - create client
@@ -97,46 +96,47 @@ If user wants to:
 
 Return ONLY JSON.
 
-Create client:
+Extract values from the user's request.
+
+Examples:
+
+Single:
 
 {
  "action":"create_client",
  "data":{
-   "name":"Rahul",
-   "email":"rahul@gmail.com"
+   "name":"<user_name>",
+   "email":"<user_email_or_null>"
  }
 }
 
-Create invoice:
+Multiple:
 
-{
- "action":"create_invoice",
- "data":{
-   "clientId":1,
-   "amount":5000
+[
+ {
+   "action":"create_client",
+   "data":{
+     "name":"<user_name>",
+     "email":null
+   }
+ },
+ {
+   "action":"create_invoice",
+   "data":{
+     "amount":<user_amount>
+   }
  }
-}
+]
 
-2.
-For every other question:
+Do NOT always use Rahul.
+Use actual values provided by the user.
 
-Respond naturally.
+No markdown.
+No explanation.
+Only JSON.
 
-Examples:
-
-User:
-How are you
-
-Assistant:
-I am doing well.
-
-User:
-Give reminder
-
-Assistant:
-I cannot create reminders yet but I can help.
-
-Never return empty output.
+For normal questions:
+respond naturally.
 
 `
 
@@ -158,7 +158,7 @@ async function runAgent(
 
     const message =
       await runGemini(
-        `
+`
 ${systemPrompt}
 
 User:
@@ -173,75 +173,82 @@ ${safeCommand}
     ) {
 
       return {
-
         ok: true,
-
         message:
           "I could not generate a response."
-
       }
+
     }
 
     try {
 
-      const parsed =
-        JSON.parse(
-          message
-        )
-
-      const fn =
-        ACTION_MAP[
-          parsed.action
-        ]
+      let parsed =
+        JSON.parse(message)
 
       if (
-        !fn
+        !Array.isArray(parsed)
       ) {
 
-        return {
+        parsed =
+          [parsed]
 
-          ok: true,
-
-          message:
-            "I understood the request but could not execute it."
-
-        }
       }
 
-      const result =
-        await fn(
-          parsed.data,
-          userId
-        )
+      const outputs = []
 
-      if (
-        parsed.action ===
-        "create_client"
+      let createdClient =
+        null
+
+      for (
+        const item
+        of parsed
       ) {
 
-        return {
+        if (
+          item.action ===
+          "create_client"
+        ) {
 
-          ok: true,
+          createdClient =
+            await createClient(
+              item.data,
+              userId
+            )
 
-          message:
-            `Client ${result.name} created successfully`
-
-        }
-      }
-
-      if (
-        parsed.action ===
-        "create_invoice"
-      ) {
-
-        return {
-
-          ok: true,
-
-          message:
-            `Invoice created successfully for client ${result.client_id}`
+          outputs.push(
+            `Client ${createdClient.name} created`
+          )
 
         }
+
+        else if (
+          item.action ===
+          "create_invoice"
+        ) {
+
+          if (
+            !item.data.clientId
+            &&
+            createdClient
+          ) {
+
+            item.data.clientId =
+              createdClient.id
+
+          }
+
+          const invoice =
+            await createInvoice(
+              item.data,
+              userId
+            )
+
+          outputs.push(
+            `Invoice ₹${invoice.amount} created`
+          )
+
+        }
+
       }
 
       return {
@@ -249,7 +256,7 @@ ${safeCommand}
         ok: true,
 
         message:
-          "Action completed"
+          outputs.join("\n")
 
       }
 
@@ -260,15 +267,13 @@ ${safeCommand}
         ok: true,
 
         message:
-          String(
-            message
-          )
+          String(message)
 
       }
 
     }
 
-  } catch (err) {
+    } catch (err) {
 
     console.error(
       "runAgent Error:",
