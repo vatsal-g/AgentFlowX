@@ -1,8 +1,6 @@
 import { useState } from "react"
 import axios from "axios"
-
-const API_BASE = "https://AgentFlowX-backend.onrender.com"
-
+const API_BASE = "https://agentflowx.onrender.com"
 async function sendCommand(command) {
   const res = await axios.post(
     `${API_BASE}/api/agent`,
