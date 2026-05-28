@@ -1,45 +1,40 @@
 require("dotenv").config();
+
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
-const { runAgent } = require("./agent");
-const auth = require("./auth");
+
 const dashboardRoutes = require("./dashboard.routes");
 const invoiceRoutes = require("./invoice.routes");
-const { verifyToken } = require("./auth");
-    const app = express();
-    app.use("/api", verifyToken, dashboardRoutes);
-app.use("/api/invoices", verifyToken, invoiceRoutes);
+const { runAgent } = require("./agent");
+const auth = require("./auth");
+
+const app = express();
 
 /* =========================
    MIDDLEWARE
 ========================= */
+
 app.use(cors({
   origin: [
     "http://localhost:5173",
     "https://agentflowx-frontend.onrender.com"
   ],
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
+
 app.use(bodyParser.json());
+
 /* =========================
    ROUTES
 ========================= */
 
-
 app.use("/api", dashboardRoutes);
 app.use("/api/invoices", invoiceRoutes);
+
 app.post("/api/auth/register", auth.register);
 app.post("/api/auth/login", auth.login);
-                                          
-
-
-app.use((req, res, next) => {
-  console.log(`[${req.method}] ${req.url}`, req.body || {});
-  next();
-});
 
 /* =========================
    HEALTH CHECK
@@ -85,5 +80,5 @@ app.post("/api/agent", async (req, res) => {
 const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`🔥 Server running on http://127.0.0.1:${PORT}`);
+  console.log(`🔥 Server running on port ${PORT}`);
 });
