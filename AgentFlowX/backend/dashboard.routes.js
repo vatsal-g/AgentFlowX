@@ -7,10 +7,33 @@ const router = express.Router();
 ========================= */
 router.get("/dashboard", async (req, res) => {
   try {
-    const clients = await query(`SELECT COUNT(*) FROM clients`);
-    const invoices = await query(`SELECT COUNT(*) FROM invoices`);
+    const userId = req.user.id;
+
+    const clients = await query(
+      `
+      SELECT COUNT(*)
+      FROM clients
+      WHERE user_id = $1
+      `,
+      [userId]
+    );
+
+    const invoices = await query(
+      `
+      SELECT COUNT(*)
+      FROM invoices
+      WHERE user_id = $1
+      `,
+      [userId]
+    );
+
     const revenue = await query(
-      `SELECT COALESCE(SUM(amount),0) AS total FROM invoices`
+      `
+      SELECT COALESCE(SUM(amount),0) AS total
+      FROM invoices
+      WHERE user_id = $1
+      `,
+      [userId]
     );
 
     res.json({
@@ -21,9 +44,13 @@ router.get("/dashboard", async (req, res) => {
         totalRevenue: Number(revenue.rows[0].total),
       },
     });
+
   } catch (err) {
     console.error("Dashboard error:", err);
-    res.status(500).json({ ok: false });
+
+    res.status(500).json({
+      ok: false
+    });
   }
 });
 
@@ -32,12 +59,30 @@ router.get("/dashboard", async (req, res) => {
 ========================= */
 router.get("/clients", async (req, res) => {
   try {
-    const result = await query(`SELECT * FROM clients ORDER BY id DESC`);
-    res.json({ ok: true, data: result.rows });
+    const result = await query(
+      `
+      SELECT *
+      FROM clients
+      WHERE user_id = $1
+      ORDER BY id DESC
+      `,
+      [req.user.id]
+    );
+
+    res.json({
+      ok: true,
+      data: result.rows
+    });
+
   } catch (err) {
-    res.status(500).json({ ok: false });
+    console.error("Get clients error:", err);
+
+    res.status(500).json({
+      ok: false
+    });
   }
 });
+
 /* =========================
    ADD CLIENT
 ========================= */
@@ -54,11 +99,11 @@ router.post("/clients", async (req, res) => {
 
     const result = await query(
       `
-      INSERT INTO clients (name, email)
-      VALUES ($1, $2)
+      INSERT INTO clients (name, email, user_id)
+      VALUES ($1, $2, $3)
       RETURNING *
       `,
-      [name, email]
+      [name, email, req.user.id]
     );
 
     res.status(201).json({
@@ -82,11 +127,26 @@ router.post("/clients", async (req, res) => {
 router.get("/anomalies", async (req, res) => {
   try {
     const result = await query(
-      `SELECT * FROM anomalies ORDER BY created_at DESC`
+      `
+      SELECT *
+      FROM anomalies
+      WHERE user_id = $1
+      ORDER BY created_at DESC
+      `,
+      [req.user.id]
     );
-    res.json({ ok: true, data: result.rows });
+
+    res.json({
+      ok: true,
+      data: result.rows
+    });
+
   } catch (err) {
-    res.status(500).json({ ok: false });
+    console.error("Get anomalies error:", err);
+
+    res.status(500).json({
+      ok: false
+    });
   }
 });
 

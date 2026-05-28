@@ -2,11 +2,14 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
-const dashboardRoutes = require("./dashboard.routes");
-const invoiceRoutes = require("./invoice.routes"); 
 const { runAgent } = require("./agent");
 const auth = require("./auth");
+const dashboardRoutes = require("./dashboard.routes");
+const invoiceRoutes = require("./invoice.routes");
+const { verifyToken } = require("./auth");
     const app = express();
+    app.use("/api", verifyToken, dashboardRoutes);
+app.use("/api/invoices", verifyToken, invoiceRoutes);
 
 /* =========================
    MIDDLEWARE
