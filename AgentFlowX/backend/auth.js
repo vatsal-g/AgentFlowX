@@ -131,6 +131,9 @@ console.log("PASSWORD MATCH:", match);
    AUTH MIDDLEWARE
 ============================ */
 function verifyToken(req, res, next) {
+  if (req.method === "OPTIONS") {
+  return next();
+}
   const header = req.headers.authorization;
 
   if (!header || !header.startsWith("Bearer ")) {
