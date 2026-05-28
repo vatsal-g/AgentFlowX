@@ -11,13 +11,25 @@ const auth = require("./auth");
 /* =========================
    MIDDLEWARE
 ========================= */
+app.use(cors({
+  origin: [
+    "http://localhost:5173",
+    "https://agentflowx-frontend.onrender.com"
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true
+}));
 
-app.use(cors());
+app.options("*", cors());
+
 app.use(bodyParser.json());
+
 
 /* =========================
    ROUTES
 ========================= */
+
 
 app.use("/api", dashboardRoutes);
 app.use("/api/invoices", invoiceRoutes);
