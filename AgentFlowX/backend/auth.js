@@ -2,8 +2,11 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { query } = require("./db");
 
-const JWT_SECRET = process.env.JWT_SECRET || "please_change_this_in_production";
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
+const JWT_SECRET =
+  process.env.JWT_SECRET || "please_change_this_in_production";
+
+const JWT_EXPIRES_IN =
+  process.env.JWT_EXPIRES_IN || "7d";
 
 /* ============================
    REGISTER
@@ -37,34 +40,59 @@ async function register(req, res) {
 
     const password_hash = await bcrypt.hash(password, 10);
 
-    // 🔹 Default role = client
+    // default role
     const role = "client";
 
     const result = await query(
-      `INSERT INTO users (name, email, email_normalized, password_hash, role)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING id, name, email, role,
-                 preferred_reminder_delay,
-                 preferred_email_tone,
-                 preferred_invoice_format`,
+      `
+      INSERT INTO users (
+        name,
+        email,
+        email_normalized,
+        password_hash,
+        role
+      )
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING
+        id,
+        name,
+        email,
+        role,
+        preferred_reminder_delay,
+        preferred_email_tone,
+        preferred_invoice_format
+      `,
       [name, email, emailLower, password_hash, role]
     );
 
     const user = result.rows[0];
-console.log("DB USER:", user);
+
+    console.log("DB USER:", user);
+
+    // FIXED JWT PAYLOAD
     const token = jwt.sign(
       {
         id: user.id,
         role: user.role,
+        email: user.email,
       },
       JWT_SECRET,
       { expiresIn: JWT_EXPIRES_IN }
     );
 
-    res.json({ ok: true, user, token });
+    return res.json({
+      ok: true,
+      user,
+      token,
+    });
+
   } catch (err) {
     console.error("register error:", err);
-    res.status(500).json({ ok: false, error: "server_error" });
+
+    return res.status(500).json({
+      ok: false,
+      error: "server_error",
+    });
   }
 }
 
@@ -76,35 +104,49 @@ async function login(req, res) {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res
-        .status(400)
-        .json({ ok: false, error: "email_password_required" });
+      return res.status(400).json({
+        ok: false,
+        error: "email_password_required",
+      });
     }
 
     const emailLower = email.trim().toLowerCase();
 
     const result = await query(
-      "SELECT * FROM users WHERE email_normalized=$1",
+      "SELECT * FROM users WHERE email_normalized = $1",
       [emailLower]
     );
 
     const user = result.rows[0];
+
     if (!user) {
-      return res.status(401).json({ ok: false, error: "invalid_credentials" });
+      return res.status(401).json({
+        ok: false,
+        error: "invalid_credentials",
+      });
     }
 
-    const match = await bcrypt.compare(password, user.password_hash || "");
-    console.log("PASSWORD MATCH:", match);
+    const match = await bcrypt.compare(
+      password,
+      user.password_hash || ""
+    );
+
     console.log("USER FOUND:", user.email);
-console.log("PASSWORD MATCH:", match);
+    console.log("PASSWORD MATCH:", match);
+
     if (!match) {
-      return res.status(401).json({ ok: false, error: "invalid_credentials" });
+      return res.status(401).json({
+        ok: false,
+        error: "invalid_credentials",
+      });
     }
 
+    // FIXED JWT PAYLOAD
     const token = jwt.sign(
       {
         id: user.id,
         role: user.role,
+        email: user.email,
       },
       JWT_SECRET,
       { expiresIn: JWT_EXPIRES_IN }
@@ -115,15 +157,27 @@ console.log("PASSWORD MATCH:", match);
       name: user.name,
       email: user.email,
       role: user.role,
-      preferred_reminder_delay: user.preferred_reminder_delay,
-      preferred_email_tone: user.preferred_email_tone,
-      preferred_invoice_format: user.preferred_invoice_format,
+      preferred_reminder_delay:
+        user.preferred_reminder_delay,
+      preferred_email_tone:
+        user.preferred_email_tone,
+      preferred_invoice_format:
+        user.preferred_invoice_format,
     };
 
-    res.json({ ok: true, user: safeUser, token });
+    return res.json({
+      ok: true,
+      user: safeUser,
+      token,
+    });
+
   } catch (err) {
     console.error("login error:", err);
-    res.status(500).json({ ok: false, error: "server_error" });
+
+    return res.status(500).json({
+      ok: false,
+      error: "server_error",
+    });
   }
 }
 
@@ -131,29 +185,50 @@ console.log("PASSWORD MATCH:", match);
    AUTH MIDDLEWARE
 ============================ */
 function verifyToken(req, res, next) {
+
+  // allow preflight
   if (req.method === "OPTIONS") {
-  return next();
-}
+    return next();
+  }
+
   const header = req.headers.authorization;
 
   if (!header || !header.startsWith("Bearer ")) {
-    return res.status(401).json({ ok: false, error: "no_token" });
+    return res.status(401).json({
+      ok: false,
+      error: "no_token",
+    });
   }
 
   const token = header.split(" ")[1];
 
   try {
+
     const payload = jwt.verify(token, JWT_SECRET);
+
+    console.log("JWT PAYLOAD:", payload);
 
     req.user = {
       id: payload.id,
       role: payload.role,
+      email: payload.email,
     };
 
     next();
+
   } catch (err) {
-    return res.status(401).json({ ok: false, error: "invalid_token" });
+
+    console.error("verifyToken error:", err);
+
+    return res.status(401).json({
+      ok: false,
+      error: "invalid_token",
+    });
   }
 }
 
-module.exports = { register, login, verifyToken };
+module.exports = {
+  register,
+  login,
+  verifyToken,
+};
