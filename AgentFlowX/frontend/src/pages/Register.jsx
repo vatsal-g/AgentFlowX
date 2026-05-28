@@ -1,24 +1,24 @@
-import React, { useState } from "react"
-import { api, setAuthToken } from "../api"
-import { useNavigate } from "react-router-dom"
+import React, { useState } from "react";
+import { api, setAuthToken } from "../api";
+import { useNavigate } from "react-router-dom";
 
 export default function Register() {
 
   const [name, setName] =
-    useState("")
+    useState("");
 
   const [email, setEmail] =
-    useState("")
+    useState("");
 
   const [password, setPassword] =
-    useState("")
+    useState("");
 
   const nav =
-    useNavigate()
+    useNavigate();
 
   async function submit(e) {
 
-    e.preventDefault()
+    e.preventDefault();
 
     try {
 
@@ -30,32 +30,53 @@ export default function Register() {
             email,
             password
           }
-        )
+        );
+
+      console.log(
+        "REGISTER RESPONSE:",
+        res.data
+      );
 
       if (
-        res.data?.token
+        res.data &&
+        res.data.ok &&
+        res.data.token
       ) {
 
         localStorage.setItem(
           "afx_token",
           res.data.token
-        )
+        );
 
         setAuthToken(
           res.data.token
-        )
+        );
 
-        nav("/dashboard")
+        nav("/dashboard");
+
+      } else {
+
+        alert(
+          "Registration failed"
+        );
 
       }
 
     } catch (err) {
 
-      console.log(err)
+      console.log(
+        "REGISTER ERROR:",
+        err
+      );
+
+      console.log(
+        err.response?.data
+      );
 
       alert(
+        err.response?.data?.error ||
         "Registration failed"
-      )
+      );
 
     }
 
@@ -227,6 +248,6 @@ export default function Register() {
 
     </div>
 
-  )
+  );
 
 }
