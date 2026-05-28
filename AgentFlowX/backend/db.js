@@ -1,30 +1,16 @@
-// backend/db.js
-const { Pool } = require('pg');
-require('dotenv').config();
-console.log("DB CONFIG:", {
-  PG_USER: process.env.PG_USER,
-  PG_DB: process.env.PG_DB,
-  PG_HOST: process.env.PG_HOST,
-  PG_PORT: process.env.PG_PORT,
-});
-
+const { Pool } = require("pg")
 
 const pool = new Pool({
-  user: process.env.PG_USER || 'postgres',
-  host: process.env.PG_HOST || 'localhost',
-  database: process.env.PG_DB || 'agentflowx',
-  password: process.env.PG_PASS,
-  port: process.env.PG_PORT || 5432,
-});
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
+})
 
 async function query(text, params) {
-  const client = await pool.connect();
-  try {
-    const res = await client.query(text, params);
-    return res;
-  } finally {
-    client.release();
-  }
+  return pool.query(text, params)
 }
 
-module.exports = { pool, query };
+module.exports = {
+  query
+}
