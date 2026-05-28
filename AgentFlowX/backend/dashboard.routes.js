@@ -1,7 +1,7 @@
 const express = require("express");
 const { query } = require("./db");
 const router = express.Router();
-
+const { verifyToken } = require("./auth");
 /* =========================
    GET DASHBOARD SUMMARY
 ========================= */
