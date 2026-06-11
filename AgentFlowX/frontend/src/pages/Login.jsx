@@ -26,34 +26,83 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-900">
-      <div className="w-full max-w-md bg-slate-800 p-6 rounded-lg shadow-lg">
-        <h2 className="text-2xl font-semibold mb-4 text-center">Login</h2>
+   <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-indigo-50 px-4">
 
-        <form onSubmit={submit} className="space-y-4">
-          <input
-            className="w-full p-2 rounded bg-slate-700 text-white"
-            placeholder="Email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-          />
+    <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-10 border border-slate-200">
 
-          <input
-            type="password"
-            className="w-full p-2 rounded bg-slate-700 text-white"
-            placeholder="Password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-          />
+      <div className="text-center mb-8">
 
-          <button>Login</button>;
-          <p style={{ marginTop: "12px", textAlign: "center" }}>
-  Don't have an account?{" "}
-  <a href="/register">Sign Up</a>
-</p>
-          {err && <p className="text-red-400 text-sm">{err}</p>}
-        </form>
+        <h1 className="text-4xl font-bold text-slate-900">
+          AgentFlowX
+        </h1>
+
+        <p className="text-slate-500 mt-2">
+          AI Powered Business Automation
+        </p>
+
       </div>
+
+      <h2 className="text-2xl font-semibold text-slate-800 mb-6 text-center">
+        Welcome Back
+      </h2>
+
+      <form onSubmit={submit} className="space-y-5">
+
+        <input
+          className="w-full p-4 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 outline-none focus:ring-2 focus:ring-indigo-500"
+          placeholder="Email Address"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+
+        <input
+          type="password"
+          className="w-full p-4 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 outline-none focus:ring-2 focus:ring-indigo-500"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+
+        <button
+          type="submit"
+          className="
+          w-full
+          py-4
+          rounded-xl
+          bg-gradient-to-r
+          from-indigo-600
+          to-violet-600
+          text-white
+          font-semibold
+          shadow-lg
+          hover:scale-[1.02]
+          transition-all
+          "
+        >
+          Sign In
+        </button>
+
+        {err && (
+          <p className="text-red-500 text-center text-sm">
+            {err}
+          </p>
+        )}
+
+      </form>
+
+      <p className="text-center text-slate-600 mt-6">
+        Don't have an account?
+
+        <a
+          href="/register"
+          className="ml-2 text-indigo-600 font-semibold hover:text-indigo-500"
+        >
+          Sign Up
+        </a>
+      </p>
+
     </div>
-  )
+
+  </div>
+)
 }
