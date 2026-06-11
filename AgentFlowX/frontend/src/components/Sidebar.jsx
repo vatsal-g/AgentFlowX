@@ -4,10 +4,7 @@ const links = [
   { to: "/dashboard", label: "Dashboard" },
   { to: "/clients", label: "Clients" },
   { to: "/invoices", label: "Invoices" },
-  { to: "/agent", label: "AI Agent" },
-  { to: "/audit", label: "Audit Log" },
-  { to: "/preferences", label: "Preferences" },
-  { to: "/anomalies", label: "Anomalies" },
+  { to: "/agent", label: "AI Agent" }
 ]
 
 export default function Sidebar() {

@@ -6,10 +6,7 @@ import Dashboard from "./pages/Dashboard"
 import Clients from "./pages/Clients"
 import Invoices from "./pages/invoices"
 import Agent from "./pages/Agent"
-import Audit from "./pages/Audit"
-import Preferences from "./pages/Preferences"
 import AppLayout from "./layouts/AppLayout"
-import Anomalies from "./pages/Anomalies"
 
 function PrivateRoute({ children }) {
   const token = localStorage.getItem("afx_token")
@@ -37,9 +34,6 @@ export default function App() {
         <Route path="/clients" element={<Clients />} />
         <Route path="/invoices" element={<Invoices />} />
         <Route path="/agent" element={<Agent />} />
-        <Route path="/audit" element={<Audit />} />
-        <Route path="/preferences" element={<Preferences />} />
-        <Route path="/anomalies" element={<Anomalies />} />
       </Route>
     </Routes>
   )
