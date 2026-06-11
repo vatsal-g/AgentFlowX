@@ -28,8 +28,6 @@ export default function Header() {
             <Link to="/clients">Clients</Link>
             <Link to="/invoices">Invoices</Link>
             <Link to="/agent">Agent</Link>
-            <Link to="/audit">Audit</Link>
-            <Link to="/preferences">Preferences</Link>
             <button
               onClick={logout}
               className="ml-4 text-red-400 hover:text-red-300"
