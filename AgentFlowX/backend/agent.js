@@ -152,7 +152,7 @@ async function runAgent(
   userId,
   userCommand
 ) {
-
+console.log("RUNAGENT_VERSION_JUNE12_001");
   try {
 
     const safeCommand =
