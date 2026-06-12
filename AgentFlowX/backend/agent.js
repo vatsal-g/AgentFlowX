@@ -9,7 +9,8 @@ const { runGemini } = require("./ai.gemini");
 ========================= */
 
 async function createClient({ name, email }, userId) {
-console.log("client been created via gemini:",{
+console.log("client been created via gemini:")
+console.log({
   userId,
   name,
   email})
@@ -29,8 +30,8 @@ console.log("client been created via gemini:",{
       email || null
     ]
   )
-console.log("client created", result.rows[0])
-  return result.rows[0]
+console.log("insert result")
+  console.log(result.rows);
 }
 
 async function createInvoice(
@@ -207,6 +208,7 @@ let parsed = JSON.parse(cleaned);
           item.action ===
           "create_client"
         ) {
+          console.log("Action done",item)
 
           createdClient =
             await createClient(
