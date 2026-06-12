@@ -196,15 +196,21 @@ const cleaned = message
 console.log("CLEANED RESPONSE:", cleaned);
 
 let parsed = JSON.parse(cleaned);
-      const outputs = []
 
-      let createdClient =
-        null
+if (!Array.isArray(parsed)) {
+  parsed = [parsed];
+}
 
-      for (
-        const item
-        of parsed
-      ) {
+console.log("PARSED:", parsed);
+
+const outputs = [];
+
+let createdClient = null;
+
+for (const item of parsed) {
+
+  console.log("LOOP ITEM:", item);
+
 
         if (
           item.action ===
@@ -262,20 +268,16 @@ let parsed = JSON.parse(cleaned);
           outputs.join("\n")
 
       }
+} catch (err) {
 
-    } catch {
+  console.error("JSON/ACTION ERROR:", err);
 
-      return {
+  return {
+    ok: true,
+    message: String(message)
+  };
 
-        ok: true,
-
-        message:
-          String(message)
-
-      }
-
-    }
-
+}
   } catch (err) {
 
     console.error(
