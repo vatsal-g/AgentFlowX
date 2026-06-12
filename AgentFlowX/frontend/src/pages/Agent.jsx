@@ -2,15 +2,24 @@ import { useState } from "react"
 import axios from "axios"
 const API_BASE = "https://agentflowx.onrender.com"
 async function sendCommand(command) {
+
+  const token =
+    localStorage.getItem("afx_token");
+
+  const payload =
+    JSON.parse(
+      atob(token.split(".")[1])
+    );
+
   const res = await axios.post(
     `${API_BASE}/api/agent`,
     {
-      userId: 1,
+      userId: payload.id,
       command
     }
-  )
+  );
 
-  return res.data
+  return res.data;
 }
 
 export default function Agent() {
