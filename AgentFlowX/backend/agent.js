@@ -9,7 +9,10 @@ const { runGemini } = require("./ai.gemini");
 ========================= */
 
 async function createClient({ name, email }, userId) {
-
+console.log("client been created via gemini:",{
+  userId,
+  name,
+  email})
   const result = await query(
     `
     INSERT INTO clients
@@ -26,7 +29,7 @@ async function createClient({ name, email }, userId) {
       email || null
     ]
   )
-
+console.log("client created", result.rows[0])
   return result.rows[0]
 }
 
@@ -165,7 +168,8 @@ User:
 ${safeCommand}
 `
       )
-
+console.log("Gemini is responding")
+console.log(message);
     if (
       !message
       ||
@@ -181,19 +185,14 @@ ${safeCommand}
     }
 
     try {
+const cleaned = message
+  .replace(/```json/g, "")
+  .replace(/```/g, "")
+  .trim();
 
-      let parsed =
-        JSON.parse(message)
+console.log("CLEANED RESPONSE:", cleaned);
 
-      if (
-        !Array.isArray(parsed)
-      ) {
-
-        parsed =
-          [parsed]
-
-      }
-
+let parsed = JSON.parse(cleaned);
       const outputs = []
 
       let createdClient =
