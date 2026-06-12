@@ -7,21 +7,21 @@ const { runGemini } = require("./ai.gemini");
 /* =========================
    DB ACTIONS
 ========================= */
-
 async function createClient({ name, email }, userId) {
-console.log("client been created via gemini:")
-console.log({
-  userId,
-  name,
-  email})
+
+  console.log("CREATE CLIENT CALLED");
+  console.log({
+    userId,
+    name,
+    email
+  });
+
   const result = await query(
     `
     INSERT INTO clients
     (user_id,name,email)
-
     VALUES
     ($1,$2,$3)
-
     RETURNING *
     `,
     [
@@ -29,11 +29,13 @@ console.log({
       name,
       email || null
     ]
-  )
-console.log("insert result")
-  console.log(result.rows);
-}
+  );
 
+  console.log("QUERY SUCCESS");
+  console.log(result.rows);
+
+  return result.rows[0];
+}
 async function createInvoice(
   {
     clientId,
